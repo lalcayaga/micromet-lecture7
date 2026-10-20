@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patient T07 · 46100 Lecture 7</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌉</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#040806;--panel:#07120b;--line:#1F5C3A;--g:#6DF5A4;--g2:#B9FFD5;--dim:#8FD9AE;--amber:#FFD36E;--red:#FF6B5E;--white:#E6FFF0;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--g);font-family:'Share Tech Mono',ui-monospace,'Courier New',monospace;font-size:17px;line-height:1.45;min-height:100vh}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 18px 40px}
+.glow{text-shadow:0 0 6px rgba(90,255,160,.7)}
+h1,h2,h3{font-weight:400;margin:.2em 0 .4em;color:var(--g2)} h1{font-size:30px;letter-spacing:.06em} h2{font-size:22px} h3{font-size:18px;color:var(--g)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px;font-size:14px;color:var(--dim)}
+.panel{background:radial-gradient(circle at 50% 40%,#0b1a10,#050a07);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}.row>*{flex:1 1 260px;min-width:0}
+button,.btn{font:inherit;min-height:46px;padding:8px 16px;border-radius:6px;border:2px solid var(--g);background:transparent;color:var(--g);cursor:pointer;text-align:center}
+button:hover{background:rgba(109,245,164,.12)} button.on{background:var(--g);color:var(--bg)} button:disabled{opacity:.35;cursor:not-allowed}
+button.primary{background:var(--g);color:var(--bg)} button.amber{border-color:var(--amber);color:var(--amber)} button.amber.on{background:var(--amber);color:var(--bg)}
+input{font:inherit;min-height:46px;background:transparent;border:none;border-bottom:2px solid var(--amber);color:var(--amber);padding:6px 4px;width:100%;max-width:260px}
+label{color:var(--dim);font-size:14px;display:block}
+.eq{color:var(--white);font-size:19px;margin:.3em 0;overflow-x:auto;white-space:nowrap}
+.muted{color:var(--dim);font-size:14px}.amb{color:var(--amber)}.redt{color:var(--red)}
+.chain{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+@media (max-width:720px){.chain{grid-template-columns:repeat(2,minmax(0,1fr))}body{font-size:16px}h1{font-size:24px}}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;background:#06100a;min-height:150px}
+.card .tag{font-size:13px;color:var(--dim)} .card .term{font-size:22px;color:var(--white)}
+.card.open{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
+.card.locked{opacity:.45}
+.stamp{display:inline-block;border:2px solid currentColor;padding:2px 10px;letter-spacing:.12em;transform:rotate(-4deg);margin-top:auto;align-self:flex-start}
+.stamp.cleared{color:var(--g)} .stamp.guilty{color:var(--red)}
+canvas{width:100%;height:300px;display:block;border-radius:8px;background:#030604}
+.fb{border-left:3px solid var(--g);padding:6px 12px;margin:10px 0;background:rgba(109,245,164,.06)} .fb.bad{border-color:var(--amber);background:rgba(255,211,110,.06)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--dim);margin-top:6px}
+.sw{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+.bar{height:22px;background:var(--g);min-width:2px;transition:width .6s} .barrow{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;margin:6px 0}
+.hidden{display:none!important}
+@keyframes flash{from{box-shadow:0 0 0 3px var(--amber)}to{box-shadow:0 0 0 0 transparent}}.flash{animation:flash 1.6s ease-out}
+.navbar{display:inline-flex;gap:8px}.mini{min-height:36px;padding:4px 12px;font-size:14px}
+a{color:var(--amber)}
+sup{font-size:.72em;line-height:0;vertical-align:.45em}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* ===== Configuration ===================================================== */
+const API_URL = "";   // TODO Leonardo: paste the Apps Script web-app URL (Code_patient_T07.gs). Empty = offline mode.
+const DATA = {"numbers":{"parseval_ratio":1.0000016726749188,"peak_lambda_m":1023.9999999999999,"a_fit_15m":22.329822581417105,"coh_lowf_15m":0.8677606593210504,"coh_lowf_30m":0.6777729904947793,"coh_lowf_45m":0.5015564700525247,"chi2_meas_w0":0.0005851395726076445,"chi2_dav_w0":0.0417410898007527,"lambda_c_w0":2.5590376696683417,"pointfactor":12791007303.811806,"thrust_nonlinear_mid":14623649596.658031,"eta":0.02199114857512855,"eta_a":0.14137166941154067,"w0":2.199114857512855,"H2_ratio_no_eta_a":55.183673469387735,"dx_coarse":24.0,"om_max":1.3089969389957472,"accel_truth_ms2":0.007349804811355733,"accel_design_ms2":0.001411608855954032,"accel_truth_over_design":5.206686526763384,"box_var_ratio":1.048910546328081,"level_var_from_table":3.0799196263438384,"report_box_var":3.145229763685115,"U":10.0,"dt":0.15,"T":614.4,"N":4096,"Ny":64,"sigma_u":1.8,"rho":1.25,"D":120.0,"A":11309.733552923255,"CT":0.8,"mass":400000.0,"f0":0.35,"zeta":0.01},"point":{"om":[0.0307,0.0409,0.0511,0.0614,0.0765,0.097,0.1175,0.1429,0.1737,0.2143,0.2655,0.3266,0.4033,0.4951,0.6075,0.7452,0.9187,1.1331,1.3935,1.71,2.1028,2.5879,3.1849,3.9201,4.8184,5.9259,7.2888,8.9679,11.0352,13.5721],"ratio":[1.041,1.4576,1.473,1.5773,1.5002,1.4671,1.4215,1.1144,0.95,0.9674,1.4561,1.3366,1.6282,1.4125,1.3254,1.6104,1.5845,1.4324,4.7078,1.3019,1.4986,1.5432,1.5551,2.1057,1.391,1.5138,1.4218,2.5797,1.3464,1.6282]},"coh":{"15":{"om":[0.0205,0.0307,0.0409,0.0511,0.0614,0.0765,0.1019,0.1327,0.1683,0.2143,0.2754,0.352,0.4488,0.5763,0.7395,0.9486,1.2139,1.5555,1.9992,2.5654,3.2847,4.2077,5.396,6.9209,8.8744],"coh":[0.8678,0.8791,0.7548,0.6085,0.7837,0.6151,0.6567,0.4534,0.4113,0.3987,0.2163,0.1351,0.0765,0.0394,0.0164,0.0066,0.0068,0.0058,0.0036,0.0037,0.0033,0.0026,0.0024,0.0023,0.0021]},"30":{"om":[0.0205,0.0307,0.0409,0.0511,0.0614,0.0765,0.1019,0.1327,0.1683,0.2143,0.2754,0.352,0.4488,0.5763,0.7395,0.9486,1.2139,1.5555,1.9992,2.5654,3.2847,4.2077,5.396,6.9209,8.8744],"coh":[0.6778,0.6671,0.415,0.2196,0.45,0.2784,0.2619,0.0686,0.1039,0.0613,0.0093,0.0149,0.0367,0.0186,0.0112,0.0064,0.0074,0.0057,0.0038,0.0035,0.0027,0.0026,0.0023,0.0025,0.0024]},"45":{"om":[0.0205,0.0307,0.0409,0.0511,0.0614,0.0765,0.1019,0.1327,0.1683,0.2143,0.2754,0.352,0.4488,0.5763,0.7395,0.9486,1.2139,1.5555,1.9992,2.5654,3.2847,4.2077,5.396,6.9209,8.8744],"coh":[0.5016,0.4886,0.203,0.0489,0.2063,0.1366,0.0918,0.0328,0.0839,0.0693,0.0503,0.0447,0.0348,0.0177,0.0105,0.0104,0.005,0.005,0.0041,0.0044,0.0041,0.0027,0.0022,0.0027,0.0026]}},"chi2":{"om":[0.0307,0.0409,0.0511,0.0614,0.0765,0.097,0.1175,0.1429,0.1737,0.2143,0.2655,0.3266,0.4033,0.4951,0.6075,0.7452,0.9187,1.1331,1.3935,1.71,2.1028,2.5879,3.1849,3.9201,4.8184,5.9259,7.2888,8.9679,11.0352,13.5721],"chi2":[0.64603,0.16079,0.2807,0.36241,0.37356,0.24158,0.2982,0.1442,0.14036,0.07113,0.02439,0.01248,0.0245,0.01271,0.00969,0.00675,0.00449,0.00252,0.00151,0.00123,0.00063,0.00045,0.00029,0.00023,0.00015,0.00015,0.00016,0.00018,0.00021,0.00017]},"box":{"om":[0.0205,0.0307,0.0409,0.0511,0.0614,0.0716,0.0818,0.097,0.1175,0.138,0.1584,0.1839,0.2196,0.2605,0.3065,0.3626,0.429,0.5057,0.5975,0.7049,0.8275,0.9755,1.1542,1.3637,1.6089,1.8999,2.2422,2.6456,3.1207,3.6824,4.3465,5.1279,6.0523,7.1403,8.4222,9.9391,11.7318,13.8413],"S_ref":[19.866942,3.760886,3.962807,3.425914,6.176007,6.51963,1.105922,4.975872,2.386936,1.91337,2.854107,1.477097,1.448553,0.689282,0.90765,0.139439,0.638592,0.329101,0.311937,0.194983,0.109419,0.111196,0.048629,0.069045,0.030573,0.034863,0.024465,0.020501,0.015741,0.008904,0.008077,0.005151,0.004456,0.003355,0.002813,0.001995,0.001358,0.001071],"S_box":[20.8064141,14.2887812,8.3814788,2.8054365,14.8087205,5.1662179,2.0319641,1.382114,3.7165421,1.6858287,2.4553026,0.2825053,2.0578341,0.5977884,0.3649615,0.3096467,0.0808196,0.0701262,0.1249804,0.0749807,0.0427741,0.0253852,0.0135642,0.008039,0.0035682,0.0015188,0.0001488,1.59e-05,9.37e-05,0.0001344,6.07e-05,4e-06,1.42e-05,7.4e-06,2.7e-06,2e-06,1.6e-06,7e-07]},"band":[{"lo":0.01,"hi":0.1,"S":13.01674863675689,"dw":0.09000000000000001},{"lo":0.1,"hi":0.3,"S":1.449546888039399,"dw":0.19999999999999998},{"lo":0.3,"hi":1.0,"S":0.10169336200602573,"dw":0.7},{"lo":1.0,"hi":3.0,"S":0.003575048789727287,"dw":2.0},{"lo":3.0,"hi":20.9,"S":1.156976364734251e-05,"dw":17.943951023931955}]};
+const Q = new URLSearchParams(location.search);
+const SESSION = Q.get("session") || "L7-2026";
+const CODES = { IOMEGA: 3 };   // one code: it opens the verdict at the shared reveal
+const N = DATA.numbers;
+
+/* ===== State (kept per browser, so a reload does not lose progress) ====== */
+const BUILD = "patient-v7";   // change this when the game changes: old saved progress is then ignored
+const KEY = "patientT07:" + BUILD + ":" + SESSION;
+let S = load() || { team: "", act: 1, tests: 6, suspect: null, ex: {}, verdict: null, step: "title" };
+if (Q.get("unlock")) S.act = Math.max(S.act, +Q.get("unlock"));
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function post(kind, exhibit, value, confidence){
+  if (!API_URL) return;
+  try { fetch(API_URL, { method:"POST", mode:"no-cors", headers:{ "Content-Type":"text/plain" },
+        body: JSON.stringify({ session:SESSION, team:S.team, kind, exhibit, value, confidence }) }); } catch(e){}
+}
+
+/* ===== Helpers ============================================================ */
+const supfix = (h) => h.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+/g, r => "<sup>" + [...r].map(c => SUPS[c]).join("") + "</sup>");
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = supfix(h.trim()); return d.firstChild; };   // all exponents as real superscripts
+const app = document.getElementById("app");
+const big = (x) => Math.abs(x) >= 1e4 || (Math.abs(x) < 1e-3 && x !== 0);
+const fmt = (x, d=3) => big(x) ? x.toExponential(2).replace("e+", "e") : (+x.toFixed(d)).toString();   // plain: canvas labels, input fields
+const fmtH = (x, d=3) => { if (!big(x)) return (+x.toFixed(d)).toString(); const [m, e] = x.toExponential(2).split("e"); return `${m} × 10<sup>${+e}</sup>`; };   // HTML text
+const rel = (a, b) => Math.abs(a - b) / Math.abs(b);
+const SUPS = {"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","⁻":"-","⁺":"+"};
+/* Reads 1.28e10, 1.28E10, 1.28*10^10, 1.28 x 10^10, 1.28·10^10, 1.28×10¹⁰, 1.28*10**10, 10^(10), 1,28e10, 12791007303. NaN if unreadable. */
+const num = (raw) => {
+  let s = String(raw).trim().replace(/−/g, "-").replace(/\s+/g, "");
+  s = s.replace(/10([⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+)/g, (m, e) => "10^" + [...e].map(c => SUPS[c]).join(""));
+  s = s.replace(/\^\(([^)]*)\)/g, "^$1");
+  const commas = (s.match(/,/g) || []).length;
+  s = (commas === 1 && !s.includes(".")) ? s.replace(",", ".") : s.replace(/,/g, "");
+  s = s.replace(/(?:\*|×|x|X|·|⋅)10(?:\^|\*\*)/, "e").replace(/^10(?:\^|\*\*)/, "1e");
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
+  return Number(s);
+};
+function chi2Dav(om, a, L){ const r = 4*Math.PI*N.U/(a*om)/L; return 2*r*(r*(Math.exp(-1/r)-1)+1); }
+const sinc2 = (w, T) => { const x = w*T/2; return x === 0 ? 1 : Math.pow(Math.sin(x)/x, 2); };
+const CALL = { guilty:"THE CAUSE", cleared:"RULED OUT" };
+const CONF = [["hunch","Hunch"],["fair","Fairly sure"],["bet","I'd bet my thesis"]];
+const EX = {
+  A: { term:"(ρ A C_T U)²", name:"Thrust" },
+  B: { term:"χ²(ω)",        name:"Rotor averaging" },
+  C: { term:"|H(ω)|²",      name:"The tower" },
+  D: { term:"S_u(ω)",       name:"The wind input (the box)" }
+};
+const TESTS = {
+  T1: { cause:"D", name:"The box's wind level",       step:"Step 2 · the wind at one point",           fits:"after 8:20",            truth:"cleared" },
+  T2: { cause:"D", name:"Where the box goes silent",  step:"Step 3 · from a point to a field (Round 1)", fits:"after Round 1, task 3", truth:"noted" },
+  T3: { cause:"B", name:"Rotor averaging",            step:"Step 4 · across the rotor",                fits:"after Round 1, task 4", truth:"cleared" },
+  T4: { cause:"A", name:"Thrust",                     step:"Step 5 · the tower",                       fits:"after 10:15",           truth:"cleared" },
+  T5: { cause:"C", name:"The tower's response",       step:"Step 5 · the tower",                       fits:"after the damping ✎",   truth:"cleared" },
+  T6: { cause:"D", name:"The box's resolution",       step:"Step 7 · diagnosis",                       fits:"after 11:00",           truth:"guilty" }
+};
+function ex(k){ return S.ex[k] || (S.ex[k] = { step:"calc", tries:{}, done:{}, assisted:false, commit:null, conf:null }); }
+
+/* ===== Scope plot: the beam draws each series ============================= */
+function plot(cv, o){
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W*dpr; cv.height = H*dpr; const g = cv.getContext("2d"); g.scale(dpr, dpr);
+  const m = {l:58, r:14, t:14, b:40}, pw = W-m.l-m.r, ph = H-m.t-m.b;
+  const tx = o.xlog ? v => (Math.log10(v)-Math.log10(o.xr[0]))/(Math.log10(o.xr[1])-Math.log10(o.xr[0])) : v => (v-o.xr[0])/(o.xr[1]-o.xr[0]);
+  const ty = o.ylog ? v => (Math.log10(v)-Math.log10(o.yr[0]))/(Math.log10(o.yr[1])-Math.log10(o.yr[0])) : v => (v-o.yr[0])/(o.yr[1]-o.yr[0]);
+  const X = v => m.l + tx(v)*pw, Y = v => m.t + ph - ty(v)*ph;
+  g.strokeStyle = "#1F5C3A"; g.lineWidth = 1; g.fillStyle = "#8FD9AE"; g.font = "12px 'Share Tech Mono', monospace";
+  (o.xticks||[]).forEach(v => { g.beginPath(); g.moveTo(X(v), m.t); g.lineTo(X(v), m.t+ph); g.stroke(); g.fillText(String(v), X(v)-10, H-22); });
+  (o.yticks||[]).forEach(v => { g.beginPath(); g.moveTo(m.l, Y(v)); g.lineTo(m.l+pw, Y(v)); g.stroke(); g.fillText(fmt(v,2), 4, Y(v)+4); });
+  g.fillText(o.xlabel||"", m.l+pw/2-30, H-4);
+  if (o.vline){ g.setLineDash([4,4]); g.strokeStyle="#B9FFD5"; g.beginPath(); g.moveTo(X(o.vline[0]), m.t); g.lineTo(X(o.vline[0]), m.t+ph); g.stroke(); g.setLineDash([]); g.fillStyle="#B9FFD5"; g.fillText(o.vline[1], X(o.vline[0])+4, m.t+14); }
+  const inR = (x,y) => x>=o.xr[0] && x<=o.xr[1] && y>=o.yr[0] && y<=o.yr[1];
+  let k = 0; const total = 50;
+  function frame(){
+    k++; const f = Math.min(1, k/total);
+    o.series.forEach(s => {
+      g.save(); g.strokeStyle = s.color; g.fillStyle = s.color; g.lineWidth = s.w||2.5; g.shadowColor = s.color; g.shadowBlur = 8;
+      if (s.dash) g.setLineDash(s.dash);
+      const n = Math.max(1, Math.floor(s.x.length*f));
+      if (s.dots){ for(let i=0;i<n;i++) if(inR(s.x[i],s.y[i])){ g.beginPath(); g.arc(X(s.x[i]),Y(s.y[i]),s.r||3.5,0,7); g.fill(); } }
+      else { g.beginPath(); let st=false; for(let i=0;i<n;i++){ if(!inR(s.x[i],s.y[i])) continue; const px=X(s.x[i]),py=Y(s.y[i]); st?g.lineTo(px,py):g.moveTo(px,py); st=true; } g.stroke(); }
+      g.restore();
+    });
+    if (f < 1) requestAnimationFrame(() => { g.clearRect(0,0,W,H); redrawAxes(); frame(); });
+  }
+  function redrawAxes(){
+    g.strokeStyle = "#1F5C3A"; g.lineWidth = 1; g.fillStyle = "#8FD9AE";
+    (o.xticks||[]).forEach(v => { g.beginPath(); g.moveTo(X(v), m.t); g.lineTo(X(v), m.t+ph); g.stroke(); g.fillText(String(v), X(v)-10, H-22); });
+    (o.yticks||[]).forEach(v => { g.beginPath(); g.moveTo(m.l, Y(v)); g.lineTo(m.l+pw, Y(v)); g.stroke(); g.fillText(fmt(v,2), 4, Y(v)+4); });
+    g.fillText(o.xlabel||"", m.l+pw/2-30, H-4);
+    if (o.vline){ g.setLineDash([4,4]); g.strokeStyle="#B9FFD5"; g.beginPath(); g.moveTo(X(o.vline[0]), m.t); g.lineTo(X(o.vline[0]), m.t+ph); g.stroke(); g.setLineDash([]); g.fillStyle="#B9FFD5"; g.fillText(o.vline[1], X(o.vline[0])+4, m.t+14); }
+  }
+  frame();
+}
+const logspace = (a,b,n) => Array.from({length:n},(_,i)=>Math.pow(10, Math.log10(a)+(Math.log10(b)-Math.log10(a))*i/(n-1)));
+
+/* ===== Screens ============================================================ */
+function nav(){
+  if (!S.team || Q.get("view") === "board") return "";
+  return `<span class="navbar"><button type="button" data-nav="board" class="mini">Board</button><button type="button" data-nav="brief" class="mini">Briefing</button></span>`;
+}
+function header(){
+  return `<div class="top"><span class="glow">PATIENT T07 · DIAGNOSTIC TERMINAL · ${SESSION}</span>
+  <span>team: <span class="amb">${S.team||"—"}</span> · act ${S.act} · lab tests left: <span class="amb">${S.tests}</span></span>${nav()}</div>`;
+}
+function render(fromHistory){
+  save();
+  if (!fromHistory && (!history.state || history.state.step !== S.step)) { try { history.pushState({ step:S.step }, "", location.search); } catch(e){} }
+  app.innerHTML = ""; ({title, brief, board, exhibit, verdict, summary})[S.step.split(":")[0]]();
+  if (S.scrollNext) { S.scrollNext = false; const ps = [...document.querySelectorAll("#body .panel")]; const last = ps[ps.length - 1];
+    if (last && last.scrollIntoView) { last.scrollIntoView({ block:"center" }); last.classList.add("flash"); } else window.scrollTo(0,0); }
+  else window.scrollTo(0,0);
+}
+window.addEventListener("popstate", (e) => { if (e.state && e.state.step && Q.get("view") !== "board") { S.step = e.state.step; render(true); } });
+app.addEventListener("click", (e) => { const b = e.target.closest("[data-nav]"); if (b) { S.step = b.dataset.nav; render(); } });
+
+function title(){
+  app.append($(`<div>${header()}
+  <div class="panel"><h1 class="glow">PATIENT T07</h1>
+  <p>A differential diagnosis · wind turbine T07 · 46100 Micrometeorology, Lecture 7</p>
+  <p class="muted">Work in pairs. Every test is a calculation: keep paper, a calculator and the notes (Ch. 7) at hand.</p>
+  <label for="team">Team name (shown on the projector)</label><input id="team" maxlength="24" value="${S.team}" placeholder="e.g. Team Kolmogorov">
+  <div style="margin-top:14px"><button class="primary" id="go">Open the patient file →</button></div></div></div>`));
+  document.getElementById("go").onclick = () => { const t = document.getElementById("team").value.trim(); if(!t){ document.getElementById("team").focus(); return; } S.team = t; S.step = S.suspect ? "board" : "brief"; render(); };
+}
+
+function brief(){
+  const el = $(`<div>${header()}
+  <div class="panel"><h2 class="glow">INTAKE · PATIENT T07</h2>
+  <p>T07 stands in a wind farm (fictional). <b>Symptom:</b> its tower-top sensors show fore-aft accelerations <span class="redt">well above</span> what a quick spectral check of the tower promised. The check rests on one equation, and every factor is a possible cause:</p>
+  <div class="eq">S_a(ω) = ω⁴ · |H(ω)|² · χ²(ω) · (ρ A C_T U)² · S_u(ω)</div>
+  <p class="muted">Patient file: load report · tower data · the header of the turbulence box the simulation used.</p></div>
+  <div class="panel" style="border-color:var(--amber)"><h3 class="amb">TWO-MINUTE PRIMER · ALL YOU NEED ABOUT TURBINES</h3>
+  <p>1 · The <b>rotor</b> is a 120 m disk the wind pushes: thrust T = ½ρA C_T U². C_T ≈ 0.8 plays the role of C_D in eq. 7.2.1.</p>
+  <p>2 · The <b>tower</b>, with the rotor on top, sways like a mass on a spring (eq. 7.2.5): f₀ ≈ 0.35 Hz.</p>
+  <p>3 · Load simulations take their wind from a <b>turbulence box</b> (a Mann box), as in A3 Part D.</p></div>
+  <div class="panel"><h3>First hunch: before any tests, which cause do you suspect most?</h3>
+  <div class="pills" id="sus"></div><p class="muted">This goes to the projector, counted by cause only. The board shows how the class's hunches move.</p>
+  <button class="primary" id="go">To the whiteboard →</button> <span class="muted">Voting is optional; you can come back here from the top bar.</span></div></div>`);
+  app.append(el);
+  const sus = el.querySelector("#sus");
+  Object.entries(EX).forEach(([k,e]) => { const b = $(`<button>${k} · ${e.name}</button>`); if(S.suspect===k) b.classList.add("on");
+    b.onclick = () => { S.suspect = k; post("suspect", k, "", ""); sus.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); save(); }; sus.append(b); });
+  
+  el.querySelector("#go").onclick = () => { S.step = "board"; render(); };
+}
+
+function board(){
+  const el = $(`<div>${header()}
+  <div class="panel"><h2 class="glow">THE WHITEBOARD · PATIENT T07</h2>
+  <div class="eq">S_a(ω) = ω⁴ · |H(ω)|² · χ²(ω) · (ρ A C_T U)² · S_u(ω)</div>
+  <div class="chain" id="causes"></div></div>
+  <div class="panel"><h3>The tests, in the order of the lecture</h3><div id="tests" style="display:flex;flex-direction:column;gap:10px"></div></div>
+  <div class="panel row" id="unlock"><div><label for="code">Diagnosis code (on the lecture slide at 11:00)</label><input id="code" autocomplete="off" placeholder="CODE"></div>
+  <div style="display:flex;align-items:flex-end;gap:10px"><button id="ok">Unlock</button><span id="msg" class="muted"></span></div></div>
+  <div class="panel" id="fin"></div></div>`);
+  app.append(el);
+  ["C","B","A","D"].forEach(k => {
+    const ts = Object.keys(TESTS).filter(t => TESTS[t].cause === k), closed = ts.filter(t => S.ex[t] && S.ex[t].step === "closed");
+    const guilty = closed.some(t => TESTS[t].truth === "guilty");
+    const status = guilty ? `<span class="stamp guilty">THE CAUSE</span>` : closed.length === ts.length ? `<span class="stamp cleared">RULED OUT</span>` : closed.length ? `<span class="muted">partly tested</span>` : `<span class="muted">not tested yet</span>`;
+    el.querySelector("#causes").append($(`<div class="card"><span class="tag">CAUSE ${k}</span><span class="term">${EX[k].term}</span><span>${EX[k].name}</span><span style="margin-top:auto">${status}</span></div>`));
+  });
+  const order = Object.keys(TESTS);
+  order.forEach((t, i) => {
+    const e = TESTS[t], st = S.ex[t], done = st && st.step === "closed", prev = i === 0 || (S.ex[order[i-1]] && S.ex[order[i-1]].step === "closed");
+    const row = $(`<div class="card ${!prev?"locked":""} ${prev && !done?"open":""}" style="min-height:0;flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="tag" style="min-width:150px">TEST ${i+1} · cause ${e.cause}</span><span style="flex:1;min-width:200px"><b>${e.name}</b><br><span class="muted">${e.step} · fits ${e.fits}</span></span></div>`);
+    if (done) { row.append($(`<span class="stamp ${e.truth==="noted"?"cleared":e.truth}">${e.truth==="noted"?"PINNED":CALL[e.truth]}</span>`)); const r = $(`<button class="mini">Review</button>`); r.onclick = () => { S.step = "exhibit:"+t; render(); }; row.append(r); }
+    else if (!prev) row.append($(`<span class="muted">opens after test ${i}</span>`));
+    else { const b = $(`<button>Start →</button>`); b.onclick = () => { S.step = "exhibit:"+t; render(); }; row.append(b); }
+    el.querySelector("#tests").append(row);
+  });
+  el.querySelector("#ok").onclick = () => { const v = CODES[el.querySelector("#code").value.trim().toUpperCase()];
+    if (v){ S.act = Math.max(S.act, v); render(); } else el.querySelector("#msg").textContent = "Not a valid code. It appears on the slide when the diagnosis starts."; };
+  if (S.act >= 3) el.querySelector("#unlock").classList.add("hidden");
+  const allDone = order.every(t => S.ex[t] && S.ex[t].step === "closed"), fin = el.querySelector("#fin");
+  if (allDone && S.act >= 3){ fin.append($(`<div><h3>All six tests done.</h3><button class="primary">Make your diagnosis →</button></div>`)); fin.querySelector("button").onclick = () => { S.step = "verdict"; render(); }; }
+  else if (allDone) fin.append($(`<p class="amb">All six tests done. The diagnosis opens with the code on the lecture slide: type it in the box above.</p>`));
+  else fin.append($(`<p class="muted">Each test opens when the one before it is done. Its label says where it fits in the lecture; going ahead of the lecture is fine.</p>`));
+  const rs = $(`<p style="margin-top:14px"><button class="mini" id="restart">Restart the case</button> <span class="muted" id="rsmsg"></span></p>`); fin.append(rs);
+  let armed = false;
+  rs.querySelector("#restart").onclick = () => {
+    if (!armed) { armed = true; rs.querySelector("#rsmsg").textContent = "Click again to erase this team's progress in this browser."; return; }
+    const team = S.team; S = { team, act: 1, tests: 6, suspect: null, ex: {}, verdict: null, step: "brief" }; save(); render(); };
+}
+
+/* --- generic pieces of an exhibit ---------------------------------------- */
+function calcBlock(k, id, prompt, unit, truth, tol, hints){
+  const st = ex(k); const done = st.done[id];
+  const el = $(`<div class="panel"><h3>${prompt}</h3>
+    <div class="row"><div><label for="${id}">your value ${unit?"["+unit+"]":""}</label><input id="${id}" inputmode="decimal" ${done?"disabled":""} value="${done?fmt(done.v,4):""}"></div>
+    <div style="display:flex;align-items:flex-end"><button id="${id}b" ${done?"disabled":""}>Check</button></div></div><div id="${id}f"></div></div>`);
+  const f = el.querySelector("#"+id+"f");
+  if (done) f.append($(`<div class="fb">${id==="b0" ? "Using a = "+fmtH(done.v,3)+"." : (done.assisted ? "Shown after five tries (assisted): " : "Matches the team's own calculation: ") + fmtH(truth(),4)+" "+unit}</div>`));
+  el.querySelector("#"+id+"b").onclick = () => {
+    const v = num(el.querySelector("#"+id).value); if (isNaN(v)){ f.innerHTML = ""; f.append($(`<div class="fb bad">Couldn't read that number. Write it as 1.28e10 or 1.28*10^10.</div>`)); return; }
+    const t = truth(); st.tries[id] = (st.tries[id]||0) + 1;
+    if (rel(v,t) <= tol){ st.done[id] = { v, assisted:false }; post("calc", k, id+":ok:"+st.tries[id], ""); S.scrollNext = true; render(); return; }
+    const n = st.tries[id];
+    if (n >= 5){ st.done[id] = { v:t, assisted:true }; st.assisted = true; post("calc", k, id+":assisted", ""); S.scrollNext = true; render(); return; }
+    f.innerHTML = ""; f.append($(`<div class="fb bad">${v>t?"Too high":"Too low"} (by a factor ${fmtH(Math.max(v/t,t/v),2)}). ${hints[Math.min(n,3)-1]}${n===4?" (One more wrong try shows the value, marked assisted.)":""}</div>`)); save();
+  };
+  return el;
+}
+function commitBlock(k, question, onDone){
+  const st = ex(k);
+  const el = $(`<div class="panel"><h3>Commit before the test: ${question}</h3>
+    <div class="pills" id="v"></div><div class="pills" id="c"></div>
+    <button class="primary" id="run" disabled>Run the test (uses 1 of ${S.tests})</button> <span class="muted" id="why"></span></div>`);
+  const v = el.querySelector("#v"), c = el.querySelector("#c"), run = el.querySelector("#run");
+  const why = el.querySelector("#why");
+  const upd = () => { run.disabled = !(st.commit && st.conf) || S.tests <= 0;
+    why.textContent = S.tests <= 0 ? "No lab tests left." : !st.commit && !st.conf ? "Pick a call and a confidence first." : !st.commit ? "Pick a call (the cause, or ruled out)." : !st.conf ? "Pick how sure you are." : ""; };
+  [["guilty","The cause"],["cleared","Ruled out"]].forEach(([id,l]) => { const b = $(`<button class="amber ${st.commit===id?"on":""}">${l}</button>`); b.onclick = () => { st.commit=id; v.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); upd(); save(); }; v.append(b); });
+  CONF.forEach(([id,l]) => { const b = $(`<button class="${st.conf===id?"on":""}">${l}</button>`); b.onclick = () => { st.conf=id; c.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); upd(); save(); }; c.append(b); });
+  upd();
+  run.onclick = () => { S.tests--; st.step = "lab"; post("commit", k, st.commit, st.conf); onDone(); S.scrollNext = true; render(); };
+  return el;
+}
+function backBtn(){ const b = $(`<button>← Back to the whiteboard</button>`); b.onclick = () => { S.step = "board"; render(); }; return b; }
+function closeBtn(k){
+  const b = $(`<button class="primary">Stamp it and return to the board →</button>`);
+  b.onclick = () => { ex(k).step = "closed"; post("closed", k, TESTS[k].truth, ex(k).conf); S.step = "board"; render(); }; return b;
+}
+function outcome(k, why, next){
+  const st = ex(k), right = st.commit === TESTS[k].truth;
+  return $(`<div class="panel"><span class="stamp ${TESTS[k].truth}">${CALL[TESTS[k].truth]}</span>
+    <p>${right ? "Your call matches the test." : "The test goes against your call."} You were <b>${CONF.find(c=>c[0]===st.conf)[1].toLowerCase()}</b>.</p>
+    <div class="fb"><b>Why:</b> ${why}</div><div class="fb"><b>Next:</b> ${next}</div></div>`);
+}
+function allCalcsDone(k, ids){ const d = ex(k).done; return ids.every(i => d[i]); }
+
+/* --- the six tests, in the order of the lecture ----------------------------- */
+function exhibit(){
+  const k = S.step.split(":")[1], e = TESTS[k], st = ex(k), c = EX[e.cause];
+  const el = $(`<div>${header()}<div class="panel"><button id="back">← whiteboard</button>
+     <h2 class="glow" style="margin-top:10px">TEST ${k.slice(1)} · ${e.name}</h2><p class="muted">${e.step} · checks cause ${e.cause}: ${c.name} · ${c.term}</p><div id="intro"></div></div><div id="body"></div></div>`);
+  app.append(el); el.querySelector("#back").onclick = () => { S.step = "board"; render(); };
+  const intro = el.querySelector("#intro"), body = el.querySelector("#body");
+  const P = (h) => intro.append($(`<div>${h}</div>`));
+  const lab = (title, legend) => { const l = $(`<div class="panel"><h3>${title}</h3><canvas></canvas><div class="legend">${legend}</div></div>`); body.append(l); return l.querySelector("canvas"); };
+  const sw = (col, t) => `<span><span class="sw" style="background:${col}"></span>${t}</span>`;
+  const reveal = (h) => body.append($(`<div class="panel"><p>${h}</p></div>`));
+  const showLab = st.step === "lab" || st.step === "closed";
+  const finish = () => body.append(st.step === "lab" ? closeBtn(k) : backBtn());
+
+  if (k === "T1"){
+    const B = DATA.band;
+    P(`<p>The report says its turbulence box was scaled to the site's turbulence: <span class="amb">σ_u = 1.8 m/s</span> at the hub. Here is the box's own spectrum at the hub, averaged in five bands (two-sided, course convention):</p>
+       <div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:15px"><tr class="muted"><td style="padding:2px 12px">ω band [rad/s]</td><td style="padding:2px 12px">mean S_u [m²/s]</td><td style="padding:2px 12px">Δω [rad/s]</td></tr>
+       ${B.map(b=>`<tr><td style="padding:2px 12px">${fmt(b.lo,2)} – ${fmt(b.hi,1)}</td><td style="padding:2px 12px">${fmtH(b.S,3)}</td><td style="padding:2px 12px">${fmt(b.dw,2)}</td></tr>`).join("")}</table></div>`);
+    body.append(calcBlock("T1","t1","What variance σ_u² does the box carry at the hub?","m²/s²",()=>N.level_var_from_table,0.05,
+      ["Lecture 6: the variance is the area under the spectrum. A synthesis keeps it by construction.",
+       "Which frequencies does a two-sided spectrum also count, and how does that change the sum over the bands?",
+       "σ² = 2 Σ S̄ Δω over the five bands."]));
+    if (st.done.t1 && st.step==="calc"){ reveal(`Yours: σ² = <span class="amb">${fmt(st.done.t1.v,2)}</span>, so σ_u = ${fmt(Math.sqrt(st.done.t1.v),2)} m/s · the report: σ_u = <span class="amb">1.8 m/s</span>.`); body.append(commitBlock("T1","is the box's wind level wrong?",()=>{})); }
+    if (showLab){
+      const share = B.map(b => 2*b.S*b.dw/N.level_var_from_table);
+      const cv = lab("Test: where the box's variance sits", sw("#6DF5A4","share of σ² per band"));
+      requestAnimationFrame(()=>plot(cv, { xr:[0,5], yr:[0,1], xticks:[], yticks:[0,0.25,0.5,0.75,1], xlabel:"bands 1–5, low → high ω",
+        series: share.map((v,i)=>({x:[i+0.5,i+0.5], y:[0,v], color:"#6DF5A4", w:26})) }));
+      body.append(outcome("T1",`the box carries the right variance (σ_u ≈ ${fmt(Math.sqrt(N.level_var_from_table),2)} m/s): the level is ruled out. But look where the variance sits: the two highest bands hold almost nothing. A right variance can still sit at the wrong frequencies.`,
+        "step 3: where in frequency does the box's wind live? (Round 1, task 3)"));
+      finish();
+    }
+  }
+
+  if (k === "T2"){
+    P(`<p>From the lab bench (Round 1, task 3): the report's box against the fine box at the hub.</p>`);
+    body.append(calcBlock("T2","t2","Lab result 1: above which angular frequency is the report's box silent (less than a tenth of the fine box)?","rad/s",()=>{ const v = st.done.t2 ? st.done.t2.v : num((document.getElementById("t2")||{}).value); return (v>=1.1 && v<=2.0) ? v : 1.55; },0.0001,
+      ["Round 1, task 3: plot both spectra at the hub and compare them band by band.",
+       "Look at the ratio of the two spectra above about 0.3 rad/s. Where does it first drop below 0.1?",
+       "Expect a value between about 1.2 and 2 rad/s."]));
+    if (st.done.t2){
+      reveal(`Pinned to the whiteboard: <span class="amb">the report's box goes silent above ≈ ${fmt(st.done.t2.v,2)} rad/s</span>, while its variance is right. Whether that matters depends on the patient: at what frequency does the tower respond? (step 5)`);
+      if (st.step==="calc"){ const b = $(`<button class="primary">Pin it and return to the whiteboard →</button>`); b.onclick = () => { st.step = "closed"; st.commit = null; post("closed","T2","noted",""); S.step = "board"; render(); }; body.append(b); }
+      else body.append(backBtn());
+    }
+  }
+
+  if (k === "T3"){
+    P(`<p>Load report: <span class="amb">χ²(ω₀) = ${fmt(N.chi2_meas_w0,4)}</span> at the tower frequency, "from averaging the turbulence box over the rotor disk".</p>
+       <p class="muted">Given: rotor diameter D = 120 m · U = 10 m/s · tower frequency ω₀ = ${fmt(N.w0,2)} rad/s.</p>`);
+    body.append(calcBlock("T3","b0","Lab result 2: your Davenport a from Round 1 (fitted at 15 m).","",()=>{ const v = st.done.b0 ? st.done.b0.v : num((document.getElementById("b0")||{}).value); return (v>=8 && v<=45) ? v : N.a_fit_15m; },0.0001,
+      ["Round 1, task 4: fit Davenport at 15 m.","Davenport is written with f in Hz; did you convert from ω?","A value around 20 is typical for this box."]));
+    if (st.done.b0){
+      const a = st.done.b0.v;
+      body.append(calcBlock("T3","b1","Treat the rotor as the line-like structure in the notes, 120 m long. What admittance χ² does it get at ω₀ with your a?","",()=>chi2Dav(N.w0,a,N.D),0.05,
+        ["Chapter 7, loads on a line-like structure: the admittance compares the structure's length with a length set by the coherence.",
+         "Over what distance does Davenport's coherence decay at this ω (the notes call it λ)? How does it compare with 120 m?",
+         "λ_c = 4πU/(aω₀). Then χ² = 2r[r(e^(−1/r) − 1) + 1] with r = λ_c / L."]));
+      if (st.done.b1 && st.step==="calc"){
+        reveal(`Textbook (yours): <span class="amb">${fmt(chi2Dav(N.w0,a,N.D),3)}</span> · report: <span class="amb">${fmt(N.chi2_meas_w0,4)}</span>, about ${fmt(chi2Dav(N.w0,a,N.D)/N.chi2_meas_w0,0)}× lower.`);
+        body.append(commitBlock("T3","is the report's χ² wrong?",()=>{}));
+      }
+    }
+    if (showLab){
+      const a = st.done.b0 ? st.done.b0.v : N.a_fit_15m, om = logspace(0.03, 15, 120);
+      const cv = lab("Test: the true wind averaged over the 120 m rotor disk, divided by the point value", sw("#6DF5A4","true wind, rotor disk") + sw("#E6FFF0","the notes' line, 120 m, your a") + sw("#FFD36E","report at ω₀"));
+      requestAnimationFrame(()=>plot(cv, { xlog:true, ylog:true, xr:[0.03,15], yr:[1e-4,1], xticks:[0.1,1,10], yticks:[1e-4,1e-3,1e-2,0.1,1], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
+        series:[{x:DATA.chi2.om, y:DATA.chi2.chi2, dots:true, color:"#6DF5A4"}, {x:om, y:om.map(w=>chi2Dav(w,a,N.D)), color:"#E6FFF0", w:2, dash:[6,4]}, {x:[N.w0], y:[N.chi2_meas_w0], dots:true, r:7, color:"#FFD36E"}] }));
+      body.append(outcome("T3",`the report's value sits on the true wind's own rotor average. The coherence in a Mann field falls faster than Davenport far apart (your Round 1), and a disk averages in two directions, not one. The notes' line formula (7.2.18) would have been <b>conservative</b>.`,
+        "step 5: the tower itself."));
+      finish();
+    }
+  }
+
+  if (k === "T4"){
+    P(`<p>The load report turns the wind spectrum into a thrust spectrum by multiplying it by one constant factor. Its value is sealed until you have your own.</p>
+       <p class="muted">Given: ρ = 1.25 kg/m³ · rotor area A = 11 310 m² (D = 120 m) · C_T = 0.8 · U = 10 m/s.</p>`);
+    body.append(calcBlock("T4","a1","What constant factor turns S_u(ω) into the spectrum of the thrust fluctuations?","N² s² m⁻²",()=>N.pointfactor,0.03,
+      ["Chapter 7, loads on a point-like structure: the rotor's thrust has the same form as the drag there (see the primer).",
+       "Write the thrust with U + u and keep only the part that is proportional to u. How does a constant gain in time show up in a spectrum?",
+       "The fluctuating thrust is (ρ A C_T U)·u(t). Square that prefactor with the givens."]));
+    if (st.done.a1 && st.step==="calc"){ reveal(`Yours: <span class="amb">${fmtH(st.done.a1.v)}</span> · the report's: <span class="amb">${fmtH(N.pointfactor)}</span> N² s² m⁻².`); body.append(commitBlock("T4","is the thrust factor in the report wrong?",()=>{})); }
+    if (showLab){
+      const cv = lab("Test: full thrust ½ρAC_T(U+u)² from the true wind, divided by its spectrum", sw("#6DF5A4","full thrust, true wind") + sw("#FFD36E","your factor"));
+      requestAnimationFrame(()=>plot(cv, { xlog:true, xr:[0.03,15], yr:[0,3], xticks:[0.1,1,10], yticks:[0,1,2,3], xlabel:"ω [rad/s]   (y in units of 1e10 N²·s²/m²)",
+        series:[{x:DATA.point.om, y:DATA.point.ratio, dots:true, color:"#6DF5A4"}, {x:[0.03,15], y:[st.done.a1.v/1e10, st.done.a1.v/1e10], color:"#FFD36E", dash:[6,4]}] }));
+      body.append(outcome("T4",`the ratio is flat: a constant gain g in time becomes g² in the spectrum (S ∝ X X*). The full thrust sits about ${fmt(100*(N.thrust_nonlinear_mid/N.pointfactor-1),0)} % above the linear factor: the u² term the linearisation drops. The report's factor is right.`,
+        "how does the tower respond to that thrust?"));
+      finish();
+    }
+  }
+
+  if (k === "T5"){
+    P(`<p>The load report says the operating rotor adds aerodynamic damping to the tower. Its value is sealed until you have your own.</p>
+       <p class="muted">Given: tower-top modal mass m = 4.0×10⁵ kg · tower frequency ω₀ = ${fmt(N.w0,2)} rad/s · structural damping η = ${fmt(N.eta,4)} s⁻¹ (1 % of critical) · ρ = 1.25 kg/m³ · A = 11 310 m² · C_T = 0.8 · U = 10 m/s.</p>`);
+    body.append(calcBlock("T5","c1","How large is the aerodynamic damping η_a of the operating rotor?","s⁻¹",()=>N.eta_a,0.03,
+      ["Chapter 7, the damped oscillator: what changes in the force when the structure itself moves with the wind?",
+       "Write the thrust with the relative wind u − ẋ and linearise. Which term has the same form as the damping term of the oscillator?",
+       "That term moves to the left-hand side and adds to 2mη: 2m η_a = ρ A C_T U."]));
+    if (st.done.c1) body.append(calcBlock("T5","c2","At the tower's frequency, how many times larger would the response |H|² be with the rotor parked (η_a = 0)?","×",()=>N.H2_ratio_no_eta_a,0.04,
+      ["Look at the response function of the damped oscillator, at resonance.",
+       "At ω = ω₀, which term in the denominator of |H|² survives, and how does it depend on the damping?",
+       "|H(ω₀)|² ∝ 1/(η + η_a)². Take the ratio with η alone."]));
+    if (st.done.c2 && st.step==="calc"){ reveal(`The report: η + η_a = <span class="amb">${fmt(N.eta+N.eta_a,3)} s⁻¹</span>, included in its response function.`); body.append(commitBlock("T5","is the tower's response in the report wrong?",()=>{})); }
+    if (showLab){
+      const w = Array.from({length:400},(_,i)=>1.2+2.0*i/399), H2 = (x,e2)=>1/(N.mass**2*((N.w0**2-x*x)**2+4*e2*e2*x*x));
+      const cv = lab("Test: the tower's response function near its mode", sw("#FF6B5E","η only (rotor parked)") + sw("#6DF5A4","η + η_a (rotor operating), the report's"));
+      requestAnimationFrame(()=>plot(cv, { ylog:true, xr:[1.2,3.2], yr:[1e-13,1e-9], xticks:[1.2,1.7,2.2,2.7,3.2], yticks:[1e-13,1e-11,1e-9], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
+        series:[{x:w, y:w.map(x=>H2(x,N.eta)), color:"#FF6B5E"}, {x:w, y:w.map(x=>H2(x,N.eta+N.eta_a)), color:"#6DF5A4"}] }));
+      body.append(outcome("T5",`an operating rotor damps its own tower: η_a is ${fmt(N.eta_a/N.eta,1)}× the structural damping, and the report included it. Leaving it out would have been about ${fmt(N.H2_ratio_no_eta_a,0)}× more conservative. Note where the tower responds: at ω₀ = ${fmt(N.w0,2)} rad/s.`,
+        "compare that with what you pinned in test 2."));
+      finish();
+    }
+  }
+
+  if (k === "T6"){
+    const sil = S.ex.T2 && S.ex.T2.done.t2 ? S.ex.T2.done.t2.v : null;
+    P(`<p>On the whiteboard: the report's box goes silent above <span class="amb">≈ ${sil?fmt(sil,2):"?"} rad/s</span> (test 2); the tower responds at <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span> (test 5). Box header: <span class="amb">256 × 32 × 32 points · 6144 m along the wind · U = 10 m/s</span>.</p>`);
+    body.append(calcBlock("T6","d1","Why there? What is the highest angular frequency this box can feed the turbine?","rad/s",()=>N.om_max,0.04,
+      ["Lecture 6: what limits the highest frequency in a sampled record? Here the sampling is in space, not in time.",
+       "How long is one grid cell along the wind, and what is the shortest wave a grid can hold? How do you turn a wavenumber into a frequency (Round 1, task 2)?",
+       "Δx = 6144 m / 256; k_max = π/Δx; ω = U k."]));
+    if (st.done.d1 && st.step==="calc"){ reveal(`Box limit: <span class="amb">${fmt(N.om_max,2)} rad/s</span> · tower mode: <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span>.`); body.append(commitBlock("T6","is the turbulence box the cause?",()=>{})); }
+    if (showLab){
+      const B = DATA.box;
+      const cv = lab("Test: the wind at the hub, true wind vs the report's box", sw("#6DF5A4","true wind (fine box, Δx = 1.5 m)") + sw("#FF6B5E","report's box (Δx = 24 m)") + sw("#FFD36E","the box's limit"));
+      requestAnimationFrame(()=>plot(cv, { xlog:true, ylog:true, xr:[0.02,15], yr:[1e-7,100], xticks:[0.1,1,10], yticks:[1e-6,1e-4,1e-2,1,100], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
+        series:[{x:B.om, y:B.S_ref, color:"#6DF5A4"}, {x:B.om, y:B.S_box, color:"#FF6B5E"}, {x:[N.om_max,N.om_max], y:[1e-7,100], color:"#FFD36E", w:1.5, dash:[5,4]}] }));
+      body.append(outcome("T6",`a 24 m grid holds no eddies shorter than 48 m, so the box has almost no wind above ${fmt(N.om_max,2)} rad/s. The tower responds at ${fmt(N.w0,2)} rad/s, past the cliff: the simulation never shook it at its own frequency. Scaling the box to the right σ_u only moved the missing energy to low frequencies. With the true wind, the tower-top acceleration is ${fmt(N.accel_truth_over_design,1)}× the design value.`,
+        "make the diagnosis when the lecture gives the diagnosis code."));
+      finish();
+    }
+  }
+}
+
+function verdict(){
+  const el = $(`<div>${header()}<div class="panel"><h2 class="glow">DIAGNOSIS</h2><p>Which cause explains the symptom?</p>
+    <div class="pills" id="v"></div><div class="pills" id="c"></div><button class="primary" id="ok" disabled>Make the diagnosis</button></div></div>`);
+  app.append(el); let pick = null, conf = null; const ok = el.querySelector("#ok"), upd = () => ok.disabled = !(pick && conf);
+  Object.entries(EX).forEach(([k,e]) => { const b = $(`<button class="amber">${k} · ${e.term}</button>`); b.onclick = () => { pick = k; el.querySelectorAll("#v button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); upd(); }; el.querySelector("#v").append(b); });
+  CONF.forEach(([id,l]) => { const b = $(`<button>${l}</button>`); b.onclick = () => { conf = id; el.querySelectorAll("#c button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); upd(); }; el.querySelector("#c").append(b); });
+  ok.onclick = () => { S.verdict = { pick, conf }; post("verdict", pick, "", conf); S.step = "summary"; render(); };
+}
+
+function summary(){
+  const called = Object.keys(TESTS).filter(t => TESTS[t].truth !== "noted");
+  const rows = called.map(k => { const st = S.ex[k]||{}; const right = st.commit === TESTS[k].truth;
+    return `<tr><td>${k.slice(1)} · ${TESTS[k].name}</td><td>${st.commit ? CALL[st.commit].toLowerCase() : "—"}</td><td>${(CONF.find(c=>c[0]===st.conf)||["","—"])[1]}</td><td class="${right?"":"amb"}">${right?"matched":"did not match"}</td><td>${st.assisted?"assisted":""}</td></tr>`; }).join("");
+  const sure = called.filter(k => S.ex[k] && S.ex[k].conf === "bet"), sureRight = sure.filter(k => S.ex[k].commit === TESTS[k].truth).length;
+  app.append($(`<div>${header()}<div class="panel"><h2 class="glow">CASE NOTES</h2>
+    <p>Your diagnosis: <span class="amb">${S.verdict.pick}</span> · ${S.verdict.pick==="D" ? "the turbulence box. The load chain was right; its wind had nothing at the tower's frequency." : "the tests pointed to D, the turbulence box."}</p>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px"><tr class="muted"><td>test</td><td>your call</td><td>confidence</td><td>test</td><td></td></tr>${rows}</table></div>
+    <div class="fb"><b>Calibration:</b> you were "I'd bet my thesis" sure ${sure.length} time(s) and right ${sureRight} time(s). Exit-ticket question 3 asks you to reflect on this: was your confidence a good guide?</div>
+    <div class="fb"><b>Reality check:</b> this was a quick spectral check. Real certification uses IEC turbulence models and aeroelastic simulation, and box resolution is one of the settings to get right there too.</div>
+    <div class="fb"><b>Epilogue:</b> Next patient: the class's own Østerild record has an unexplained deficit in S_w/S_u. Back to the slides.</div></div></div>`));
+}
+
+/* ===== Projector view: ?view=board ======================================== */
+function projector(){
+  document.body.style.fontSize = "22px";
+  app.innerHTML = `<div class="top"><span class="glow">PATIENT T07 · CLASS WHITEBOARD · ${SESSION}</span><span id="teams" class="amb"></span></div>
+    <div class="row"><div class="panel"><h2>First hunch</h2><div id="sus"></div></div><div class="panel"><h2>Calls per test (the cause / ruled out)</h2><div id="com"></div></div></div>
+    <div class="panel"><h2>Diagnoses <button id="rv" style="margin-left:12px">Reveal</button></h2><div id="ver" class="hidden"></div></div>
+    <p class="muted">${API_URL ? "Live: refreshes every 5 s." : "Offline: API_URL is empty in patient_T07.html, so no class data is collected."}</p>`;
+  document.getElementById("rv").onclick = () => document.getElementById("ver").classList.toggle("hidden");
+  const bars = (id, counts) => { const tot = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
+    document.getElementById(id).innerHTML = Object.keys(EX).map(k => `<div class="barrow"><span>${k} · ${EX[k].term}</span><div class="bar" style="width:${100*(counts[k]||0)/tot}%"></div><span>${counts[k]||0}</span></div>`).join(""); };
+  async function tick(){
+    if (!API_URL) return;
+    try { const r = await fetch(API_URL + "?action=summary&session=" + encodeURIComponent(SESSION)); const d = await r.json();
+      document.getElementById("teams").textContent = d.teams + " teams";
+      bars("sus", d.suspect||{}); bars("ver", d.verdict||{});
+      document.getElementById("com").innerHTML = Object.keys(TESTS).filter(k => TESTS[k].truth !== "noted").map(k => { const c = (d.commit||{})[k]||{guilty:0,cleared:0};
+        return `<div class="barrow"><span>Test ${k.slice(1)} · ${TESTS[k].name}</span><span><span class="redt">${c.guilty} the cause</span> / ${c.cleared} ruled out</span><span></span></div>`; }).join("");
+    } catch(e){}
+  }
+  tick(); setInterval(tick, 5000);
+}
+
+if (Q.get("view") === "board") projector(); else { try { history.replaceState({ step:S.step }, "", location.search); } catch(e){} render(true); }
+</script>
+</body>
+</html>

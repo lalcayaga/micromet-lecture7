@@ -59,9 +59,9 @@ const CODES = { IOMEGA: 3 };   // one code: it opens the verdict at the shared r
 const N = DATA.numbers;
 
 /* ===== State (kept per browser, so a reload does not lose progress) ====== */
-const BUILD = "patient-v7";   // change this when the game changes: old saved progress is then ignored
+const BUILD = "patient-v8";   // change this when the game changes: old saved progress is then ignored
 const KEY = "patientT07:" + BUILD + ":" + SESSION;
-let S = load() || { team: "", act: 1, tests: 6, suspect: null, ex: {}, verdict: null, step: "title" };
+let S = load() || { team: "", act: 1, tests: 5, suspect: null, ex: {}, verdict: null, step: "title" };
 if (Q.get("unlock")) S.act = Math.max(S.act, +Q.get("unlock"));
 function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
@@ -96,18 +96,16 @@ const sinc2 = (w, T) => { const x = w*T/2; return x === 0 ? 1 : Math.pow(Math.si
 const CALL = { guilty:"THE CAUSE", cleared:"RULED OUT" };
 const CONF = [["hunch","Hunch"],["fair","Fairly sure"],["bet","I'd bet my thesis"]];
 const EX = {
-  A: { term:"(ρ A C_T U)²", name:"Thrust" },
-  B: { term:"χ²(ω)",        name:"Rotor averaging" },
-  C: { term:"|H(ω)|²",      name:"The tower" },
-  D: { term:"S_u(ω)",       name:"The wind input (the box)" }
+  A: { term:"|H(ω)|²",       name:"The tower" },
+  B: { term:"S_u(ω)",        name:"The wind input (the box)" },
+  C: { term:"the sensors",   name:"The instruments" }
 };
 const TESTS = {
-  T1: { cause:"D", name:"The box's wind level",       step:"Step 2 · the wind at one point",           fits:"after 8:20",            truth:"cleared" },
-  T2: { cause:"D", name:"Where the box goes silent",  step:"Step 3 · from a point to a field (Round 1)", fits:"after Round 1, task 3", truth:"noted" },
-  T3: { cause:"B", name:"Rotor averaging",            step:"Step 4 · across the rotor",                fits:"after Round 1, task 4", truth:"cleared" },
-  T4: { cause:"A", name:"Thrust",                     step:"Step 5 · the tower",                       fits:"after 10:15",           truth:"cleared" },
-  T5: { cause:"C", name:"The tower's response",       step:"Step 5 · the tower",                       fits:"after the damping ✎",   truth:"cleared" },
-  T6: { cause:"D", name:"The box's resolution",       step:"Step 7 · diagnosis",                       fits:"after 11:00",           truth:"guilty" }
+  T1: { cause:"B", name:"The box's wind level",            step:"Step 2 · the wind at one point",            fits:"after 8:20",            truth:"cleared" },
+  T2: { cause:"B", name:"Where the box goes silent",       step:"Step 3 · from a point to a field (Round 1)", fits:"after Round 1, task 3", truth:"noted" },
+  T3: { cause:"A", name:"The tower's response",            step:"Step 5 · the tower",                        fits:"after the tower ✎",     truth:"cleared" },
+  T4: { cause:"C", name:"Can the reference sonic see it?", step:"Step 6 · the instruments",                  fits:"after the sonic",       truth:"cleared" },
+  T5: { cause:"B", name:"The box's resolution",            step:"Step 7 · diagnosis",                        fits:"after 10:45",           truth:"guilty" }
 };
 function ex(k){ return S.ex[k] || (S.ex[k] = { step:"calc", tries:{}, done:{}, assisted:false, commit:null, conf:null }); }
 
@@ -182,7 +180,7 @@ function title(){
 function brief(){
   const el = $(`<div>${header()}
   <div class="panel"><h2 class="glow">INTAKE · PATIENT T07</h2>
-  <p>T07 stands in a wind farm (fictional). <b>Symptom:</b> its tower-top sensors show fore-aft accelerations <span class="redt">well above</span> what a quick spectral check of the tower promised. The check rests on one equation, and every factor is a possible cause:</p>
+  <p>T07 stands in a wind farm (fictional). <b>Symptom:</b> its tower-top sensors show fore-aft accelerations <span class="redt">well above</span> what a quick spectral check of the tower promised. The check rests on one equation. The thrust and the rotor averaging follow the notes and are checked in the lecture; three suspects remain:</p>
   <div class="eq">S_a(ω) = ω⁴ · |H(ω)|² · χ²(ω) · (ρ A C_T U)² · S_u(ω)</div>
   <p class="muted">Patient file: load report · tower data · the header of the turbulence box the simulation used.</p></div>
   <div class="panel" style="border-color:var(--amber)"><h3 class="amb">TWO-MINUTE PRIMER · ALL YOU NEED ABOUT TURBINES</h3>
@@ -210,7 +208,7 @@ function board(){
   <div style="display:flex;align-items:flex-end;gap:10px"><button id="ok">Unlock</button><span id="msg" class="muted"></span></div></div>
   <div class="panel" id="fin"></div></div>`);
   app.append(el);
-  ["C","B","A","D"].forEach(k => {
+  ["A","B","C"].forEach(k => {
     const ts = Object.keys(TESTS).filter(t => TESTS[t].cause === k), closed = ts.filter(t => S.ex[t] && S.ex[t].step === "closed");
     const guilty = closed.some(t => TESTS[t].truth === "guilty");
     const status = guilty ? `<span class="stamp guilty">THE CAUSE</span>` : closed.length === ts.length ? `<span class="stamp cleared">RULED OUT</span>` : closed.length ? `<span class="muted">partly tested</span>` : `<span class="muted">not tested yet</span>`;
@@ -230,14 +228,14 @@ function board(){
     if (v){ S.act = Math.max(S.act, v); render(); } else el.querySelector("#msg").textContent = "Not a valid code. It appears on the slide when the diagnosis starts."; };
   if (S.act >= 3) el.querySelector("#unlock").classList.add("hidden");
   const allDone = order.every(t => S.ex[t] && S.ex[t].step === "closed"), fin = el.querySelector("#fin");
-  if (allDone && S.act >= 3){ fin.append($(`<div><h3>All six tests done.</h3><button class="primary">Make your diagnosis →</button></div>`)); fin.querySelector("button").onclick = () => { S.step = "verdict"; render(); }; }
-  else if (allDone) fin.append($(`<p class="amb">All six tests done. The diagnosis opens with the code on the lecture slide: type it in the box above.</p>`));
+  if (allDone && S.act >= 3){ fin.append($(`<div><h3>All five tests done.</h3><button class="primary">Make your diagnosis →</button></div>`)); fin.querySelector("button").onclick = () => { S.step = "verdict"; render(); }; }
+  else if (allDone) fin.append($(`<p class="amb">All five tests done. The diagnosis opens with the code on the lecture slide: type it in the box above.</p>`));
   else fin.append($(`<p class="muted">Each test opens when the one before it is done. Its label says where it fits in the lecture; going ahead of the lecture is fine.</p>`));
   const rs = $(`<p style="margin-top:14px"><button class="mini" id="restart">Restart the case</button> <span class="muted" id="rsmsg"></span></p>`); fin.append(rs);
   let armed = false;
   rs.querySelector("#restart").onclick = () => {
     if (!armed) { armed = true; rs.querySelector("#rsmsg").textContent = "Click again to erase this team's progress in this browser."; return; }
-    const team = S.team; S = { team, act: 1, tests: 6, suspect: null, ex: {}, verdict: null, step: "brief" }; save(); render(); };
+    const team = S.team; S = { team, act: 1, tests: 5, suspect: null, ex: {}, verdict: null, step: "brief" }; save(); render(); };
 }
 
 /* --- generic pieces of an exhibit ---------------------------------------- */
@@ -286,7 +284,7 @@ function outcome(k, why, next){
 }
 function allCalcsDone(k, ids){ const d = ex(k).done; return ids.every(i => d[i]); }
 
-/* --- the six tests, in the order of the lecture ----------------------------- */
+/* --- the five tests, in the order of the lecture ----------------------------- */
 function exhibit(){
   const k = S.step.split(":")[1], e = TESTS[k], st = ex(k), c = EX[e.cause];
   const el = $(`<div>${header()}<div class="panel"><button id="back">← whiteboard</button>
@@ -335,87 +333,61 @@ function exhibit(){
   }
 
   if (k === "T3"){
-    P(`<p>Load report: <span class="amb">χ²(ω₀) = ${fmt(N.chi2_meas_w0,4)}</span> at the tower frequency, "from averaging the turbulence box over the rotor disk".</p>
-       <p class="muted">Given: rotor diameter D = 120 m · U = 10 m/s · tower frequency ω₀ = ${fmt(N.w0,2)} rad/s.</p>`);
-    body.append(calcBlock("T3","b0","Lab result 2: your Davenport a from Round 1 (fitted at 15 m).","",()=>{ const v = st.done.b0 ? st.done.b0.v : num((document.getElementById("b0")||{}).value); return (v>=8 && v<=45) ? v : N.a_fit_15m; },0.0001,
-      ["Round 1, task 4: fit Davenport at 15 m.","Davenport is written with f in Hz; did you convert from ω?","A value around 20 is typical for this box."]));
-    if (st.done.b0){
-      const a = st.done.b0.v;
-      body.append(calcBlock("T3","b1","Treat the rotor as the line-like structure in the notes, 120 m long. What admittance χ² does it get at ω₀ with your a?","",()=>chi2Dav(N.w0,a,N.D),0.05,
-        ["Chapter 7, loads on a line-like structure: the admittance compares the structure's length with a length set by the coherence.",
-         "Over what distance does Davenport's coherence decay at this ω (the notes call it λ)? How does it compare with 120 m?",
-         "λ_c = 4πU/(aω₀). Then χ² = 2r[r(e^(−1/r) − 1) + 1] with r = λ_c / L."]));
-      if (st.done.b1 && st.step==="calc"){
-        reveal(`Textbook (yours): <span class="amb">${fmt(chi2Dav(N.w0,a,N.D),3)}</span> · report: <span class="amb">${fmt(N.chi2_meas_w0,4)}</span>, about ${fmt(chi2Dav(N.w0,a,N.D)/N.chi2_meas_w0,0)}× lower.`);
-        body.append(commitBlock("T3","is the report's χ² wrong?",()=>{}));
-      }
-    }
-    if (showLab){
-      const a = st.done.b0 ? st.done.b0.v : N.a_fit_15m, om = logspace(0.03, 15, 120);
-      const cv = lab("Test: the true wind averaged over the 120 m rotor disk, divided by the point value", sw("#6DF5A4","true wind, rotor disk") + sw("#E6FFF0","the notes' line, 120 m, your a") + sw("#FFD36E","report at ω₀"));
-      requestAnimationFrame(()=>plot(cv, { xlog:true, ylog:true, xr:[0.03,15], yr:[1e-4,1], xticks:[0.1,1,10], yticks:[1e-4,1e-3,1e-2,0.1,1], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
-        series:[{x:DATA.chi2.om, y:DATA.chi2.chi2, dots:true, color:"#6DF5A4"}, {x:om, y:om.map(w=>chi2Dav(w,a,N.D)), color:"#E6FFF0", w:2, dash:[6,4]}, {x:[N.w0], y:[N.chi2_meas_w0], dots:true, r:7, color:"#FFD36E"}] }));
-      body.append(outcome("T3",`the report's value sits on the true wind's own rotor average. The coherence in a Mann field falls faster than Davenport far apart (your Round 1), and a disk averages in two directions, not one. The notes' line formula (7.2.18) would have been <b>conservative</b>.`,
-        "step 5: the tower itself."));
-      finish();
-    }
-  }
-
-  if (k === "T4"){
-    P(`<p>The load report turns the wind spectrum into a thrust spectrum by multiplying it by one constant factor. Its value is sealed until you have your own.</p>
-       <p class="muted">Given: ρ = 1.25 kg/m³ · rotor area A = 11 310 m² (D = 120 m) · C_T = 0.8 · U = 10 m/s.</p>`);
-    body.append(calcBlock("T4","a1","What constant factor turns S_u(ω) into the spectrum of the thrust fluctuations?","N² s² m⁻²",()=>N.pointfactor,0.03,
-      ["Chapter 7, loads on a point-like structure: the rotor's thrust has the same form as the drag there (see the primer).",
-       "Write the thrust with U + u and keep only the part that is proportional to u. How does a constant gain in time show up in a spectrum?",
-       "The fluctuating thrust is (ρ A C_T U)·u(t). Square that prefactor with the givens."]));
-    if (st.done.a1 && st.step==="calc"){ reveal(`Yours: <span class="amb">${fmtH(st.done.a1.v)}</span> · the report's: <span class="amb">${fmtH(N.pointfactor)}</span> N² s² m⁻².`); body.append(commitBlock("T4","is the thrust factor in the report wrong?",()=>{})); }
-    if (showLab){
-      const cv = lab("Test: full thrust ½ρAC_T(U+u)² from the true wind, divided by its spectrum", sw("#6DF5A4","full thrust, true wind") + sw("#FFD36E","your factor"));
-      requestAnimationFrame(()=>plot(cv, { xlog:true, xr:[0.03,15], yr:[0,3], xticks:[0.1,1,10], yticks:[0,1,2,3], xlabel:"ω [rad/s]   (y in units of 1e10 N²·s²/m²)",
-        series:[{x:DATA.point.om, y:DATA.point.ratio, dots:true, color:"#6DF5A4"}, {x:[0.03,15], y:[st.done.a1.v/1e10, st.done.a1.v/1e10], color:"#FFD36E", dash:[6,4]}] }));
-      body.append(outcome("T4",`the ratio is flat: a constant gain g in time becomes g² in the spectrum (S ∝ X X*). The full thrust sits about ${fmt(100*(N.thrust_nonlinear_mid/N.pointfactor-1),0)} % above the linear factor: the u² term the linearisation drops. The report's factor is right.`,
-        "how does the tower respond to that thrust?"));
-      finish();
-    }
-  }
-
-  if (k === "T5"){
     P(`<p>The load report says the operating rotor adds aerodynamic damping to the tower. Its value is sealed until you have your own.</p>
        <p class="muted">Given: tower-top modal mass m = 4.0×10⁵ kg · tower frequency ω₀ = ${fmt(N.w0,2)} rad/s · structural damping η = ${fmt(N.eta,4)} s⁻¹ (1 % of critical) · ρ = 1.25 kg/m³ · A = 11 310 m² · C_T = 0.8 · U = 10 m/s.</p>`);
-    body.append(calcBlock("T5","c1","How large is the aerodynamic damping η_a of the operating rotor?","s⁻¹",()=>N.eta_a,0.03,
+    body.append(calcBlock("T3","c1","How large is the aerodynamic damping η_a of the operating rotor?","s⁻¹",()=>N.eta_a,0.03,
       ["Chapter 7, the damped oscillator: what changes in the force when the structure itself moves with the wind?",
        "Write the thrust with the relative wind u − ẋ and linearise. Which term has the same form as the damping term of the oscillator?",
        "That term moves to the left-hand side and adds to 2mη: 2m η_a = ρ A C_T U."]));
-    if (st.done.c1) body.append(calcBlock("T5","c2","At the tower's frequency, how many times larger would the response |H|² be with the rotor parked (η_a = 0)?","×",()=>N.H2_ratio_no_eta_a,0.04,
+    if (st.done.c1) body.append(calcBlock("T3","c2","At the tower's frequency, how many times larger would the response |H|² be with the rotor parked (η_a = 0)?","×",()=>N.H2_ratio_no_eta_a,0.04,
       ["Look at the response function of the damped oscillator, at resonance.",
        "At ω = ω₀, which term in the denominator of |H|² survives, and how does it depend on the damping?",
        "|H(ω₀)|² ∝ 1/(η + η_a)². Take the ratio with η alone."]));
-    if (st.done.c2 && st.step==="calc"){ reveal(`The report: η + η_a = <span class="amb">${fmt(N.eta+N.eta_a,3)} s⁻¹</span>, included in its response function.`); body.append(commitBlock("T5","is the tower's response in the report wrong?",()=>{})); }
+    if (st.done.c2 && st.step==="calc"){ reveal(`The report: η + η_a = <span class="amb">${fmt(N.eta+N.eta_a,3)} s⁻¹</span>, included in its response function.`); body.append(commitBlock("T3","is the tower's response in the report wrong?",()=>{})); }
     if (showLab){
       const w = Array.from({length:400},(_,i)=>1.2+2.0*i/399), H2 = (x,e2)=>1/(N.mass**2*((N.w0**2-x*x)**2+4*e2*e2*x*x));
       const cv = lab("Test: the tower's response function near its mode", sw("#FF6B5E","η only (rotor parked)") + sw("#6DF5A4","η + η_a (rotor operating), the report's"));
       requestAnimationFrame(()=>plot(cv, { ylog:true, xr:[1.2,3.2], yr:[1e-13,1e-9], xticks:[1.2,1.7,2.2,2.7,3.2], yticks:[1e-13,1e-11,1e-9], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
         series:[{x:w, y:w.map(x=>H2(x,N.eta)), color:"#FF6B5E"}, {x:w, y:w.map(x=>H2(x,N.eta+N.eta_a)), color:"#6DF5A4"}] }));
-      body.append(outcome("T5",`an operating rotor damps its own tower: η_a is ${fmt(N.eta_a/N.eta,1)}× the structural damping, and the report included it. Leaving it out would have been about ${fmt(N.H2_ratio_no_eta_a,0)}× more conservative. Note where the tower responds: at ω₀ = ${fmt(N.w0,2)} rad/s.`,
+      body.append(outcome("T3",`an operating rotor damps its own tower: η_a is ${fmt(N.eta_a/N.eta,1)}× the structural damping, and the report included it. Leaving it out would have been about ${fmt(N.H2_ratio_no_eta_a,0)}× more conservative. Note where the tower responds: at ω₀ = ${fmt(N.w0,2)} rad/s.`,
         "compare that with what you pinned in test 2."));
       finish();
     }
   }
 
-  if (k === "T6"){
+  if (k === "T4"){
+    P(`<p>Our evidence: the "true wind" in these tests stands in for the site's reference <b>sonic</b> at hub height, sampled at 20 Hz, with three 149 mm paths (§6.2). Before trusting it at the tower's frequency, check that it can see it.</p>
+       <p class="muted">Given: sampling rate f_s = 20 Hz · the tower's frequency ω₀ = ${fmt(N.w0,2)} rad/s.</p>`);
+    body.append(calcBlock("T4","s1","What is the highest angular frequency a 20 Hz record can contain?","rad/s",()=>Math.PI*20,0.03,
+      ["Lecture 6: sampling limits the frequencies a record can hold.",
+       "The highest frequency in Hz is half the sampling rate. How do you convert that to angular frequency?",
+       "ω_N = 2π · (f_s / 2) = π f_s."]));
+    if (st.done.s1 && st.step==="calc"){ reveal(`Sonic limit: <span class="amb">${fmt(Math.PI*20,1)} rad/s</span> · tower mode: <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span>.`); body.append(commitBlock("T4","is the reference instrument the problem?",()=>{})); }
+    if (showLab){
+      const B = DATA.box;
+      const cv = lab("Test: the true wind at the hub, with the tower's frequency and the sonic's limit", sw("#6DF5A4","true wind") + sw("#FFD36E","the sonic's Nyquist limit"));
+      requestAnimationFrame(()=>plot(cv, { xlog:true, ylog:true, xr:[0.02,80], yr:[1e-5,100], xticks:[0.1,1,10], yticks:[1e-4,1e-2,1,100], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
+        series:[{x:B.om, y:B.S_ref, color:"#6DF5A4"}, {x:[Math.PI*20,Math.PI*20], y:[1e-5,100], color:"#FFD36E", w:1.5, dash:[5,4]}] }));
+      body.append(outcome("T4",`a 20 Hz sonic holds frequencies up to ${fmt(Math.PI*20,0)} rad/s, about ${fmt(Math.PI*20/N.w0,0)}× the tower's frequency, and its 149 mm path averages only eddies far smaller than those (§6.2). Our evidence can see the tower's wind; the instrument is ruled out.`,
+        "the same idea once more, now in space: what can the report's box hold?"));
+      finish();
+    }
+  }
+
+  if (k === "T5"){
     const sil = S.ex.T2 && S.ex.T2.done.t2 ? S.ex.T2.done.t2.v : null;
-    P(`<p>On the whiteboard: the report's box goes silent above <span class="amb">≈ ${sil?fmt(sil,2):"?"} rad/s</span> (test 2); the tower responds at <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span> (test 5). Box header: <span class="amb">256 × 32 × 32 points · 6144 m along the wind · U = 10 m/s</span>.</p>`);
-    body.append(calcBlock("T6","d1","Why there? What is the highest angular frequency this box can feed the turbine?","rad/s",()=>N.om_max,0.04,
+    P(`<p>On the whiteboard: the report's box goes silent above <span class="amb">≈ ${sil?fmt(sil,2):"?"} rad/s</span> (test 2); the tower responds at <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span> (test 3). Box header: <span class="amb">256 × 32 × 32 points · 6144 m along the wind · U = 10 m/s</span>.</p>`);
+    body.append(calcBlock("T5","d1","Why there? What is the highest angular frequency this box can feed the turbine?","rad/s",()=>N.om_max,0.04,
       ["Lecture 6: what limits the highest frequency in a sampled record? Here the sampling is in space, not in time.",
        "How long is one grid cell along the wind, and what is the shortest wave a grid can hold? How do you turn a wavenumber into a frequency (Round 1, task 2)?",
        "Δx = 6144 m / 256; k_max = π/Δx; ω = U k."]));
-    if (st.done.d1 && st.step==="calc"){ reveal(`Box limit: <span class="amb">${fmt(N.om_max,2)} rad/s</span> · tower mode: <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span>.`); body.append(commitBlock("T6","is the turbulence box the cause?",()=>{})); }
+    if (st.done.d1 && st.step==="calc"){ reveal(`Box limit: <span class="amb">${fmt(N.om_max,2)} rad/s</span> · tower mode: <span class="amb">ω₀ = ${fmt(N.w0,2)} rad/s</span>.`); body.append(commitBlock("T5","is the turbulence box the cause?",()=>{})); }
     if (showLab){
       const B = DATA.box;
       const cv = lab("Test: the wind at the hub, true wind vs the report's box", sw("#6DF5A4","true wind (fine box, Δx = 1.5 m)") + sw("#FF6B5E","report's box (Δx = 24 m)") + sw("#FFD36E","the box's limit"));
       requestAnimationFrame(()=>plot(cv, { xlog:true, ylog:true, xr:[0.02,15], yr:[1e-7,100], xticks:[0.1,1,10], yticks:[1e-6,1e-4,1e-2,1,100], xlabel:"ω [rad/s]", vline:[N.w0,"ω₀"],
         series:[{x:B.om, y:B.S_ref, color:"#6DF5A4"}, {x:B.om, y:B.S_box, color:"#FF6B5E"}, {x:[N.om_max,N.om_max], y:[1e-7,100], color:"#FFD36E", w:1.5, dash:[5,4]}] }));
-      body.append(outcome("T6",`a 24 m grid holds no eddies shorter than 48 m, so the box has almost no wind above ${fmt(N.om_max,2)} rad/s. The tower responds at ${fmt(N.w0,2)} rad/s, past the cliff: the simulation never shook it at its own frequency. Scaling the box to the right σ_u only moved the missing energy to low frequencies. With the true wind, the tower-top acceleration is ${fmt(N.accel_truth_over_design,1)}× the design value.`,
+      body.append(outcome("T5",`a 24 m grid holds no eddies shorter than 48 m, so the box has almost no wind above ${fmt(N.om_max,2)} rad/s. The tower responds at ${fmt(N.w0,2)} rad/s, past the cliff: the simulation never shook it at its own frequency. Scaling the box to the right σ_u only moved the missing energy to low frequencies. With the true wind, the tower-top acceleration is ${fmt(N.accel_truth_over_design,1)}× the design value.`,
         "make the diagnosis when the lecture gives the diagnosis code."));
       finish();
     }
@@ -437,7 +409,7 @@ function summary(){
     return `<tr><td>${k.slice(1)} · ${TESTS[k].name}</td><td>${st.commit ? CALL[st.commit].toLowerCase() : "—"}</td><td>${(CONF.find(c=>c[0]===st.conf)||["","—"])[1]}</td><td class="${right?"":"amb"}">${right?"matched":"did not match"}</td><td>${st.assisted?"assisted":""}</td></tr>`; }).join("");
   const sure = called.filter(k => S.ex[k] && S.ex[k].conf === "bet"), sureRight = sure.filter(k => S.ex[k].commit === TESTS[k].truth).length;
   app.append($(`<div>${header()}<div class="panel"><h2 class="glow">CASE NOTES</h2>
-    <p>Your diagnosis: <span class="amb">${S.verdict.pick}</span> · ${S.verdict.pick==="D" ? "the turbulence box. The load chain was right; its wind had nothing at the tower's frequency." : "the tests pointed to D, the turbulence box."}</p>
+    <p>Your diagnosis: <span class="amb">${S.verdict.pick}</span> · ${S.verdict.pick==="B" ? "the turbulence box. The load chain was right; its wind had nothing at the tower's frequency." : "the tests pointed to B, the turbulence box."}</p>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px"><tr class="muted"><td>test</td><td>your call</td><td>confidence</td><td>test</td><td></td></tr>${rows}</table></div>
     <div class="fb"><b>Calibration:</b> you were "I'd bet my thesis" sure ${sure.length} time(s) and right ${sureRight} time(s). Exit-ticket question 3 asks you to reflect on this: was your confidence a good guide?</div>
     <div class="fb"><b>Reality check:</b> this was a quick spectral check. Real certification uses IEC turbulence models and aeroelastic simulation, and box resolution is one of the settings to get right there too.</div>
